@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub API Sample</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+    }
+
+    input {
+      padding: 10px;
+      width: 70%;
+      margin-right: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .profile {
+      margin-top: 20px;
+    }
+
+    .repos {
+      margin-top: 10px;
+    }
+
+    .repo-tag {
+      display: inline-block;
+      background-color: #e74c3c;
+      color: white;
+      padding: 5px 10px;
+      margin: 5px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .repo-tag:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>API Sample</h2>
+    <form id="githubForm">
+      <input type="text" id="username" placeholder="Github username..." required />
+      <button type="submit">Pull User Data</button>
+    </form>
+
+    <div class="profile" id="profile"></div>
+    <div class="repos" id="repos"></div>
+  </div>
+
+  <script>
+    document.getElementById('githubForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const profileDiv = document.getElementById('profile');
+      const reposDiv = document.getElementById('repos');
+
+      // Clear previous data
+      profileDiv.innerHTML = '';
+      reposDiv.innerHTML = '';
+
+      // Get user data
+      const xhrUser = new XMLHttpRequest();
+      xhrUser.open('GET', 'https://api.github.com/users/' + username, true);
+      xhrUser.onload = function () {
+        if (xhrUser.status === 200) {
+          const user = JSON.parse(xhrUser.responseText);
+          profileDiv.innerHTML = `
+            <h3>${user.name} (@${user.login})</h3>
+            <img src="${user.avatar_url}" width="100" style="border-radius: 50%;" />
+            <p>Followers: ${user.followers} - Following: ${user.following}</p>
+            <p>Repos: ${user.public_repos}</p>
+          `;
+        } else {
+          profileDiv.innerHTML = `<p>User not found</p>`;
+        }
+      };
+      xhrUser.send();
+
+      // Get user repos
+      const xhrRepos = new XMLHttpRequest();
+      xhrRepos.open('GET', 'https://api.github.com/users/' + username + '/repos', true);
+      xhrRepos.onload = function () {
+        if (xhrRepos.status === 200) {
+          const repos = JSON.parse(xhrRepos.responseText);
+          reposDiv.innerHTML = `<h4>Repos List:</h4>`;
+          repos.forEach(function(repo) {
+            const a = document.createElement('a');
+            a.href = repo.html_url;
+            a.textContent = repo.name;
+            a.target = "_blank";
+            a.className = "repo-tag";
+            reposDiv.appendChild(a);
+          });
+        }
+      };
+      xhrRepos.send();
+    });
+  </script>
+</body>
+</html>
